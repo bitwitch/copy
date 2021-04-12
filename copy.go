@@ -37,8 +37,8 @@ func File(src, dst string) error {
 	return os.Chmod(dst, srcinfo.Mode())
 }
 
-// Dir copies a whole directory recursively
-func Dir(src string, dst string) error {
+// Dir copies a whole directory recursively, ignoring any files passed in
+func Dir(src string, dst string, ignore ...string) error {
 	var err error
 	var fds []os.FileInfo
 	var srcinfo os.FileInfo
@@ -54,7 +54,17 @@ func Dir(src string, dst string) error {
 	if fds, err = ioutil.ReadDir(src); err != nil {
 		return err
 	}
+
+OUTER:
 	for _, fd := range fds {
+
+		// files to ignore
+		for _, fileIgnore := range ignore {
+			if fd.Name() == fileIgnore {
+				continue OUTER
+			}
+		}
+
 		srcfp := path.Join(src, fd.Name())
 		dstfp := path.Join(dst, fd.Name())
 
